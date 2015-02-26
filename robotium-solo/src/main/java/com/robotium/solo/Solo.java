@@ -10,7 +10,6 @@ import android.graphics.PointF;
 import android.os.Environment;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.webkit.WebView;
 import android.widget.AbsListView;
@@ -70,6 +69,7 @@ public class Solo {
 	protected final ScreenshotTaker screenshotTaker;
 	protected final Instrumentation instrumentation;
 	protected final Zoomer zoomer;
+	protected final SystemUtils systemUtils;
 	protected String webUrl = null;
 	private final Config config;
 	public final static int LANDSCAPE = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;   // 0
@@ -153,6 +153,7 @@ public class Solo {
 		this.rotator = new Rotator(instrumentation);
 		this.presser = new Presser(viewFetcher, clicker, instrumentation, sleeper, waiter, dialogUtils);
 		this.textEnterer = new TextEnterer(instrumentation, clicker, dialogUtils);
+		this.systemUtils = new SystemUtils(instrumentation);
 		initialize();
 	}
 
@@ -1383,7 +1384,14 @@ public class Solo {
 
 	@SuppressWarnings("unchecked")
 	public boolean scrollDown() {
-		waiter.waitForViews(true, AbsListView.class, ScrollView.class, WebView.class, ViewGroup.class);
+		View recyclerView = scroller.getRecyclerView(null);
+		
+		if(recyclerView != null){
+			waiter.waitForViews(true, AbsListView.class, ScrollView.class, WebView.class, recyclerView.getClass());
+		}
+		else {
+			waiter.waitForViews(true, AbsListView.class, ScrollView.class, WebView.class);
+		}
 		return scroller.scroll(Scroller.DOWN);
 	}
 
@@ -1393,7 +1401,13 @@ public class Solo {
 
 	@SuppressWarnings("unchecked")
 	public void scrollToBottom() {
-		waiter.waitForViews(true, AbsListView.class, ScrollView.class, WebView.class);
+		View recyclerView = scroller.getRecyclerView(null);
+		if(recyclerView != null){
+			waiter.waitForViews(true, AbsListView.class, ScrollView.class, WebView.class, recyclerView.getClass());
+		}
+		else {
+			waiter.waitForViews(true, AbsListView.class, ScrollView.class, WebView.class);
+		}
 		scroller.scroll(Scroller.DOWN, true);
 	}
 
@@ -1407,7 +1421,13 @@ public class Solo {
 
 	@SuppressWarnings("unchecked")
 	public boolean scrollUp(){
-		waiter.waitForViews(true, AbsListView.class, ScrollView.class, WebView.class);
+		View recyclerView = scroller.getRecyclerView(null);
+		if(recyclerView != null){
+			waiter.waitForViews(true, AbsListView.class, ScrollView.class, WebView.class, recyclerView.getClass());
+		}
+		else {
+			waiter.waitForViews(true, AbsListView.class, ScrollView.class, WebView.class);
+		}
 		return scroller.scroll(Scroller.UP);
 	}
 
@@ -1417,7 +1437,13 @@ public class Solo {
 
 	@SuppressWarnings("unchecked")
 	public void scrollToTop() {
-		waiter.waitForViews(true, AbsListView.class, ScrollView.class, WebView.class);
+		View recyclerView = scroller.getRecyclerView(null);
+		if(recyclerView != null){
+			waiter.waitForViews(true, AbsListView.class, ScrollView.class, WebView.class, recyclerView.getClass());
+		}
+		else {
+			waiter.waitForViews(true, AbsListView.class, ScrollView.class, WebView.class);
+		}
 		scroller.scroll(Scroller.UP, true);
 	}
 
@@ -1672,6 +1698,29 @@ public class Solo {
 		}
 		rotator.generateRotateGesture(Rotator.SMALL, center1, center2);
 	}
+	
+	/**
+	 * Sets if mobile data should be turned on or off. Requires android.permission.CHANGE_NETWORK_STATE in the AndroidManifest.xml of the application under test.
+	 * NOTE: Setting it to false can kill the adb connection. 
+	 * 
+	 * @param turnedOn true if mobile data is to be turned on and false if not
+	 */
+
+	public void setMobileData(Boolean turnedOn){
+		systemUtils.setMobileData(turnedOn);
+	}
+	
+	/**
+	 * Sets if wifi data should be turned on or off. Requires android.permission.CHANGE_WIFI_STATE in the AndroidManifest.xml of the application under test. 
+	 *  
+	 * 
+	 * @param turnedOn true if mobile wifi is to be turned on and false if not
+	 */
+
+	public void setWiFiData(Boolean turnedOn){
+		systemUtils.setWiFiData(turnedOn);
+	}
+	
 
 	/**
 	 * Sets the date in a DatePicker matching the specified index.
